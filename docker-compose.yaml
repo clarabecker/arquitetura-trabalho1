@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  banco-dados:
+    image: postgres:15-alpine
+    container_name: banco_dados_container
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: udesc_user
+      POSTGRES_PASSWORD: udesc_password
+      POSTGRES_DB: sistema_pedidos
+    networks:
+      - rede-arquitetura
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  produto-service:
+    build: ./produto-service
+    container_name: produto_service_container
+    ports:
+      - "8002:8000"
+    networks:
+      - rede-arquitetura
+    depends_on:
+      - banco-dados
+
+  restaurante-service:
+    build: ./restaurante-service
+    container_name: restaurante_service_container
+    ports:
+      - "8003:8000"
+    networks:
+      - rede-arquitetura
+    depends_on:
+      - banco-dados
+
+  cliente-service:
+    build: ./cliente-service
+    container_name: cliente_service_container
+    ports:
+      - "8004:8000"
+    networks:
+      - rede-arquitetura
+    depends_on:
+      - banco-dados
+
+  pedido-service:
+    build: ./pedido-service
+    container_name: pedido_service_container
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://banco-dados:5432/sistema_pedidos
+      - SPRING_DATASOURCE_USERNAME=udesc_user
+      - SPRING_DATASOURCE_PASSWORD=udesc_password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - URL_CLIENTE=http://cliente-service:8000
+      - URL_RESTAURANTE=http://restaurante-service:8000
+      - URL_PRODUTO=http://produto-service:8000
+    depends_on:
+      - banco-dados
+      - produto-service
+      - restaurante-service
+      - cliente-service
+    networks:
+      - rede-arquitetura
+
+networks:
+  rede-arquitetura:
+    driver: bridge
+
+volumes:
+  postgres_data:
