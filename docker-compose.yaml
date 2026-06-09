@@ -5,10 +5,10 @@ services:
     image: postgres:15-alpine
     container_name: banco_dados_container
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
-      POSTGRES_USER: udesc_user
-      POSTGRES_PASSWORD: udesc_password
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: senha
       POSTGRES_DB: sistema_pedidos
     networks:
       - rede-arquitetura
@@ -20,6 +20,8 @@ services:
     container_name: produto_service_container
     ports:
       - "8002:8000"
+    environment:
+      - PYTHONPATH=/app
     networks:
       - rede-arquitetura
     depends_on:
@@ -30,6 +32,8 @@ services:
     container_name: restaurante_service_container
     ports:
       - "8003:8000"
+    environment:
+      - PYTHONPATH=/app
     networks:
       - rede-arquitetura
     depends_on:
@@ -40,6 +44,8 @@ services:
     container_name: cliente_service_container
     ports:
       - "8004:8000"
+    environment:
+      - PYTHONPATH=/app
     networks:
       - rede-arquitetura
     depends_on:
@@ -49,11 +55,11 @@ services:
     build: ./pedido-service
     container_name: pedido_service_container
     ports:
-      - "8080:8080"
+      - "8081:8080"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://banco-dados:5432/sistema_pedidos
-      - SPRING_DATASOURCE_USERNAME=udesc_user
-      - SPRING_DATASOURCE_PASSWORD=udesc_password
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=senha
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - URL_CLIENTE=http://cliente-service:8000
       - URL_RESTAURANTE=http://restaurante-service:8000
