@@ -22,6 +22,7 @@ services:
       - "8002:8000"
     environment:
       - PYTHONPATH=/app
+      - DATABASE_URL=postgresql://postgres:senha@banco-dados:5432/sistema_pedidos
     networks:
       - rede-arquitetura
     depends_on:
@@ -34,6 +35,7 @@ services:
       - "8003:8000"
     environment:
       - PYTHONPATH=/app
+      - DATABASE_URL=postgresql://postgres:senha@banco-dados:5432/sistema_pedidos
     networks:
       - rede-arquitetura
     depends_on:
@@ -44,8 +46,7 @@ services:
     container_name: cliente_service_container
     ports:
       - "8004:8000"
-    environment:
-      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql://postgres:senha@banco-dados:5432/sistema_pedidos
     networks:
       - rede-arquitetura
     depends_on:

@@ -1,31 +1,59 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Depends
 from pydantic import BaseModel
-from typing import List
+from sqlalchemy.orm import Session
+from sqlalchemy import Column, Integer, String, Float
+
+from database import Base, engine, get_db
+
+# Cria a tabela de produtos se não existir
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Produto Service")
 
-class Produto(BaseModel):
+# Modelo SQLAlchemy (Banco de Dados)
+class DBProduto(Base):
+    __tablename__ = "produtos"
+    
+    idProduto = Column(Integer, primary_key=True, index=True)
+    nmProduto = Column(String, nullable=False)
+    dsProduto = Column(String, nullable=False)
+    vlProduto = Column(Float, nullable=False)
+    dtValidade = Column(String, nullable=False)
+
+# Esquema Pydantic (Validação da API)
+class ProdutoSchema(BaseModel):
     idProduto: int
     nmProduto: str
     dsProduto: str
     vlProduto: float
     dtValidade: str
 
-DB: List[Produto] = [
-    # Dados mockup para teste inicial
-    Produto(idProduto=1, nmProduto="Hambúrguer", dsProduto="Artesanal", vlProduto=35.00, dtValidade="10/12/2026")
-]
+    class Config:
+        from_attributes = True
 
-@app.post("/produtos/", status_code=status.HTTP_201_CREATED)
-def cadastrar(prod: Produto):
-    if any(p.idProduto == prod.idProduto for p in DB):
+# --- ROTAS ---
+
+@app.post("/produtos/", response_model=ProdutoSchema, status_code=status.HTTP_201_CREATED)
+def cadastrar(prod: ProdutoSchema, db: Session = Depends(get_db)):
+    db_produto = db.query(DBProduto).filter(DBProduto.idProduto == prod.idProduto).first()
+    if db_produto:
         raise HTTPException(status_code=400, detail="ID já existe.")
-    DB.append(prod)
-    return prod
+    
+    novo_produto = DBProduto(
+        idProduto=prod.idProduto,
+        nmProduto=prod.nmProduto,
+        dsProduto=prod.dsProduto,
+        vlProduto=prod.vlProduto,
+        dtValidade=prod.dtValidade
+    )
+    db.add(novo_produto)
+    db.commit()
+    db.refresh(novo_produto)
+    return novo_produto
 
-@app.get("/produtos/{id}")
-def obter(id: int):
-    for p in DB:
-        if p.idProduto == id:
-            return p
-    raise HTTPException(status_code=404, detail="Produto não encontrado.")
+@app.get("/produtos/{id}", response_model=ProdutoSchema)
+def obter(id: int, db: Session = Depends(get_db)):
+    produto = db.query(DBProduto).filter(DBProduto.idProduto == id).first()
+    if not produto:
+        raise HTTPException(status_code=404, detail="Produto não encontrado.")
+    return produto
