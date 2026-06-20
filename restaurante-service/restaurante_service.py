@@ -5,12 +5,10 @@ from sqlalchemy import Column, Integer, String
 
 from database import Base, engine, get_db
 
-# Cria a tabela de restaurantes se não existir
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Restaurante Service")
 
-# Modelo SQLAlchemy (Banco de Dados)
 class DBRestaurante(Base):
     __tablename__ = "restaurantes"
     

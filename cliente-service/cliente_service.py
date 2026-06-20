@@ -2,16 +2,12 @@ from fastapi import FastAPI, HTTPException, status, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import Column, Integer, String
-
-# Importando nossa conexão de banco
 from database import Base, engine, get_db
 
-# 1. Cria as tabelas no banco de dados se não existirem
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Cliente Service")
 
-# 2. Modelo do Banco de Dados (SQLAlchemy)
 class DBCliente(Base):
     __tablename__ = "clientes"
     
@@ -20,7 +16,7 @@ class DBCliente(Base):
     nrTelefone = Column(String, nullable=False)
     strEmail = Column(String, nullable=False)
 
-# 3. Esquema de Validação (Pydantic - o que entra e sai da API)
+
 class ClienteSchema(BaseModel):
     idCliente: int
     nmCliente: str
@@ -28,7 +24,7 @@ class ClienteSchema(BaseModel):
     strEmail: str
 
     class Config:
-        from_attributes = True # Permite que o Pydantic leia dados do SQLAlchemy
+        from_attributes = True 
 
 # --- ROTAS ---
 
@@ -39,7 +35,6 @@ def cadastrar(cli: ClienteSchema, db: Session = Depends(get_db)):
     if db_cliente:
         raise HTTPException(status_code=400, detail="ID já existe.")
     
-    # Converte o esquema Pydantic para o modelo SQLAlchemy
     novo_cliente = DBCliente(
         idCliente=cli.idCliente,
         nmCliente=cli.nmCliente,

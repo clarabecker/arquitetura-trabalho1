@@ -10,7 +10,6 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Produto Service")
 
-# Modelo SQLAlchemy (Banco de Dados)
 class DBProduto(Base):
     __tablename__ = "produtos"
     
@@ -20,7 +19,6 @@ class DBProduto(Base):
     vlProduto = Column(Float, nullable=False)
     dtValidade = Column(String, nullable=False)
 
-# Esquema Pydantic (Validação da API)
 class ProdutoSchema(BaseModel):
     idProduto: int
     nmProduto: str
