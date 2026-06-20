@@ -9,14 +9,40 @@ Execute o comando abaixo para compilar os códigos fonte, construir as imagens D
 ## Testando o Fluxo de Ponta a Ponta
 Para simular o funcionamento real do ecossistema e verificar as validações automáticas que o microsserviço central realiza através da rede interna do Docker, siga o roteiro abaixo:
 
-### 1. Verificar os Dados Pré-carregados (Mockups)
-As APIs em Python já sobem com registros de teste em memória (id=1). Pode validá-los acedendo aos seguintes endpoints no seu navegador ou ferramenta de teste:
+### 1. Cadastrar os itens necessários para realizar o pedido
 
-- Cliente ID 1: GET `http://localhost:8004/clientes/1`
+#### Cliente: POST `http://localhost:8004/clientes/`
+-  Corpo da Requisição: 
+```
+{
+  "idCliente": 1,
+  "nmCliente": "João Silva",
+  "nrTelefone": "47999998888",
+  "strEmail": "joao@email.com"
+}
+```
 
-- Restaurante ID 1: GET `http://localhost:8003/restaurantes/1`
-
-- Produto ID 1: GET `http://localhost:8002/produtos/1`
+#### Restaurante: POST `http://localhost:8003/restaurantes/`
+- Corpo da Requisição:
+```
+{
+  "idRestaurante": 1,
+  "nmRestaurante": "Pizzaria Itália",
+  "nmEndereco": "Rua XV de Novembro, 100",
+  "nrTelefone": 4733334444,
+  "nrFuncionarios": 15
+}
+```
+#### Produto: POST `http://localhost:8002/produtos/`
+```
+{
+  "idProduto": 1,
+  "nmProduto": "Pizza Calabresa",
+  "dsProduto": "Pizza grande de calabresa",
+  "vlProduto": 59.90,
+  "dtValidade": "2026-12-31"
+}
+```
 
 ### 2. Submeter um Novo Pedido
 Envie uma requisição POST para o serviço central Java para criar um pedido contendo referências aos microsserviços Python:
