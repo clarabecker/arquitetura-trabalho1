@@ -2,6 +2,8 @@ from fastapi import FastAPI, HTTPException, status, Depends
 from pydantic import BaseModel
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import OperationalError
+import time
 
 from database import Base, engine, get_db
 
@@ -13,7 +15,7 @@ class DBRestaurante(Base):
     idRestaurante = Column(Integer, primary_key=True, index=True)
     nmRestaurante = Column(String, nullable=False)
     nmEndereco = Column(String, nullable=False)
-    nrTelefone = Column(Integer, nullable=False)
+    nrTelefone = Column(String, nullable=False)
     nrFuncionarios = Column(Integer, nullable=False)
 
 
@@ -35,10 +37,14 @@ class RestauranteResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 @app.on_event("startup")
 def startup():
-    Base.metadata.create_all(bind=engine)
+    for i in range(10):
+        try:
+            Base.metadata.create_all(bind=engine)
+            break
+        except OperationalError:
+            time.sleep(2)
 
 @app.post(
     "/restaurantes/",

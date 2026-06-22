@@ -2,15 +2,14 @@ from fastapi import FastAPI, HTTPException, status, Depends
 from pydantic import BaseModel
 from sqlalchemy import Column, Integer, String, Float
 from sqlalchemy.orm import Session
+import time 
+from sqlalchemy.exc import OperationalError
 
 from database import Base, engine, get_db
 
 app = FastAPI(title="Produto Service")
 
 
-# -----------------------------
-# MODEL (SQLAlchemy)
-# -----------------------------
 class DBProduto(Base):
     __tablename__ = "produtos"
 
@@ -20,10 +19,6 @@ class DBProduto(Base):
     vlProduto = Column(Float, nullable=False)
     dtValidade = Column(String, nullable=False)
 
-
-# -----------------------------
-# SCHEMA (Pydantic)
-# -----------------------------
 class ProdutoCreate(BaseModel):
     idProduto: int
     nmProduto: str
@@ -43,17 +38,16 @@ class ProdutoResponse(BaseModel):
         from_attributes = True
 
 
-# -----------------------------
-# STARTUP (CRIA TABELAS)
-# -----------------------------
 @app.on_event("startup")
 def startup():
-    Base.metadata.create_all(bind=engine)
+    for i in range(10):
+        try:
+            Base.metadata.create_all(bind=engine)
+            break
+        except OperationalError:
+            time.sleep(2)
 
 
-# -----------------------------
-# ROTAS
-# -----------------------------
 @app.post(
     "/produtos/",
     response_model=ProdutoResponse,

@@ -2,7 +2,8 @@ from fastapi import FastAPI, HTTPException, status, Depends
 from pydantic import BaseModel
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import Session
-
+from sqlalchemy.exc import OperationalError
+import time
 from database import Base, engine, get_db
 
 app = FastAPI(title="Cliente Service")
@@ -35,7 +36,12 @@ class ClienteResponse(BaseModel):
 
 @app.on_event("startup")
 def startup():
-    Base.metadata.create_all(bind=engine)
+    for i in range(10):
+        try:
+            Base.metadata.create_all(bind=engine)
+            break
+        except OperationalError:
+            time.sleep(2)
 
 
 @app.post("/clientes/", response_model=ClienteResponse, status_code=status.HTTP_201_CREATED)
