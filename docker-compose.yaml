@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   banco-dados:
     image: postgres:15-alpine
@@ -14,6 +12,11 @@ services:
       - rede-arquitetura
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sistema_pedidos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   produto-service:
     build: ./produto-service
@@ -26,7 +29,8 @@ services:
     networks:
       - rede-arquitetura
     depends_on:
-      - banco-dados
+      banco-dados:
+        condition: service_healthy
 
   restaurante-service:
     build: ./restaurante-service
@@ -39,18 +43,22 @@ services:
     networks:
       - rede-arquitetura
     depends_on:
-      - banco-dados
+      banco-dados:
+        condition: service_healthy
 
   cliente-service:
     build: ./cliente-service
     container_name: cliente_service_container
     ports:
       - "8004:8000"
+    environment:
+      - PYTHONPATH=/app
       - DATABASE_URL=postgresql://postgres:senha@banco-dados:5432/sistema_pedidos
     networks:
       - rede-arquitetura
     depends_on:
-      - banco-dados
+      banco-dados:
+        condition: service_healthy
 
   pedido-service:
     build: ./pedido-service
@@ -66,10 +74,14 @@ services:
       - URL_RESTAURANTE=http://restaurante-service:8000
       - URL_PRODUTO=http://produto-service:8000
     depends_on:
-      - banco-dados
-      - produto-service
-      - restaurante-service
-      - cliente-service
+      banco-dados:
+        condition: service_healthy
+      produto-service:
+        condition: service_started
+      restaurante-service:
+        condition: service_started
+      cliente-service:
+        condition: service_started
     networks:
       - rede-arquitetura
 
