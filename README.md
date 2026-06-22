@@ -47,7 +47,7 @@ Para simular o funcionamento real do ecossistema e verificar as validações aut
 ### 2. Submeter um Novo Pedido
 Envie uma requisição POST para o serviço central Java para criar um pedido contendo referências aos microsserviços Python:
 
-URL: `http://localhost:8080/pedidos`
+URL: `http://localhost:8081/pedidos`
 
 Headers: Content-Type: `application/json`
 
